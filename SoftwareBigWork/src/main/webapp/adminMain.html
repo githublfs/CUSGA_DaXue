@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>用户管理</title>
+    <style>
+        .el-table .warning-row {
+            background: oldlace;
+        }
+
+        .el-table .success-row {
+            background: #f0f9eb;
+        }
+    </style>
+
+</head>
+<body>
+
+
+<div id="app">
+
+    <el-button type="primary" onclick="window.location='adminMain.html'">车辆管理</el-button>
+    <el-button type="primary" plain onclick="window.location='tableCustomer.html'">用户管理</el-button>
+    <el-button type="primary" plain onclick="window.location='tableTrade.html'">订单管理</el-button>
+    <el-button type="warning" plain @click="dialogCar = true">添加数据</el-button>
+    <el-button type="warning" plain @click="onSubmit">中标情况</el-button>
+    <el-button style="float:right" type="danger" plain onclick="window.location='login.html'">注销</el-button>
+
+    <!--中标结果对话框-->
+    <el-dialog
+            title="中标情况"
+            :visible.sync="dialogBid"
+            width="50%"
+    >
+        <el-table
+                :data="tableBid"
+                style="width: 100%"
+        >
+            <el-table-column
+                    prop="customerID"
+                    label="用户编号"
+                    align="center"
+            >
+            </el-table-column>
+            <el-table-column
+                    prop="lastName"
+                    label="姓名"
+                    align="center"
+            >
+            </el-table-column>
+            <el-table-column
+                    prop="autoID"
+                    align="center"
+                    label="车辆编号">
+            </el-table-column>
+            <el-table-column
+                    prop="bid"
+                    align="center"
+                    label="竞价">
+            </el-table-column>
+            <el-table-column
+                    prop="getBid"
+                    align="center"
+                    label="是否中标">
+            </el-table-column>
+        </el-table>
+
+        <div align="center" style="padding-top: 20px">
+            <el-button type="danger" @click="deleteBid">删除</el-button>
+        </div>
+
+    </el-dialog>
+
+    <!--添加车辆对话框-->
+    <el-dialog
+            title="添加车辆"
+            :visible.sync="dialogCar"
+            width="30%"
+    >
+        <el-form ref="form" :model="car" label-width="80px">
+            <el-form-item label="车辆编号">
+                <el-input v-model="car.autoID"></el-input>
+            </el-form-item>
+
+            <el-form-item label="停车点">
+                <el-input v-model="car.location"></el-input>
+            </el-form-item>
+
+            <el-form-item label="使用年份">
+                <el-input v-model="car.year"></el-input>
+            </el-form-item>
+
+            <el-form-item label="品牌">
+                <el-input v-model="car.type"></el-input>
+            </el-form-item>
+
+            <el-form-item label="里程数">
+                <el-input v-model="car.mileage"></el-input>
+            </el-form-item>
+
+            <el-form-item label="车牌">
+                <el-input v-model="car.vin"></el-input>
+            </el-form-item>
+
+            <el-form-item>
+                <el-button type="primary" @click="addCar">提交</el-button>
+                <el-button @click="dialogCar = false">取消</el-button>
+            </el-form-item>
+        </el-form>
+
+    </el-dialog>
+
+    <!--表格-->
+    <template>
+        <el-table
+                :data="tableData"
+                style="width: 100%">
+
+            <el-table-column
+                    prop="autoID"
+                    label="车辆编号"
+                    align="center">
+            </el-table-column>
+            <el-table-column
+                    prop="location"
+                    label="停车点"
+                    align="center">
+            </el-table-column>
+            <el-table-column
+                    prop="year"
+                    align="center"
+                    label="车辆已用年份">
+            </el-table-column>
+            <el-table-column
+                    prop="type"
+                    align="center"
+                    label="品牌">
+            </el-table-column>
+            <el-table-column
+                    prop="mileage"
+                    align="center"
+                    label="公里数">
+            </el-table-column>
+            <el-table-column
+                    prop="vin"
+                    align="center"
+                    label="车牌号">
+            </el-table-column>
+        </el-table>
+    </template>
+
+</div>
+
+
+<script src="js/vue.js"></script>
+<script src="element-ui/lib/index.js"></script>
+<link rel="stylesheet" href="element-ui/lib/theme-chalk/index.css">
+
+<script src="js/axios-0.18.0.js"></script>
+
+<script>
+    new Vue({
+        el: "#app",
+
+        mounted() {
+            //查询车辆情况
+            this.selectAll();
+
+        },
+
+        methods: {
+            //查询中标情况
+            onSubmit() {
+                var _this = this;
+                // 发送ajax请求，添加数据
+                axios({
+                    method: "get",
+                    url: "http://localhost:8080/brand-case/servletTradeEnd",
+                }).then(function (resp) {
+                    _this.tableBid = resp.data;
+                    _this.dialogBid = true;
+                })
+            },
+
+            //删除中标
+            deleteBid() {
+                var _this = this;
+                // 发送ajax请求，添加数据
+                axios({
+                    method: "get",
+                    url: "http://localhost:8080/brand-case/deleteTradeEnd",
+                }).then(function (resp) {
+                    if (resp.data == "success") {
+                        //添加成功
+
+                        //关闭窗口
+                        _this.dialogBid = false;
+                        // 弹出消息提示
+                        _this.$message({
+                            message: '删除成功',
+                            type: 'success'
+                        });
+
+                    }
+                })
+            },
+
+            // 查询车辆
+            selectAll() {
+                var _this = this;
+
+                axios({
+                    method: "get",
+                    url: "http://localhost:8080/brand-case/servletAll"
+                }).then(function (resp) {
+                    _this.tableData = resp.data;
+                })
+            },
+
+            // 添加数据
+            addCar() {
+                var _this = this;
+                // 发送ajax请求，添加数据
+                axios({
+                    method: "post",
+                    url: "http://localhost:8080/brand-case/addCarServlet",
+                    data: _this.car
+                }).then(function (resp) {
+                    if (resp.data == "success") {
+                        //添加成功
+
+                        //关闭窗口
+                        _this.dialogCar = false;
+
+                        // 重新查询数据
+                        _this.selectAll();
+                        // 弹出消息提示
+                        _this.$message({
+                            message: '添加成功',
+                            type: 'success'
+                        });
+
+                    }
+                })
+            },
+        },
+
+        data() {
+
+            return {
+                // 添加数据对话框是否展示的标记
+                dialogVisible: false,
+                dialogBid: false,
+                dialogCar: false,
+
+                //竞价表单数据
+                trade: {
+                    customerID: '0',
+                    autoID: '',
+                    date: '',
+                    bid: '',
+                },
+
+                // 搜索表单数据
+                car: {
+                    autoID: "",
+                    location: "",
+                    year: "",
+                    type: "",
+                    mileage: "",
+                    vin: "",
+                },
+                // WinAndLose对话框表单数据
+                tableBid: {
+                    customerID:"",
+                    autoID: "",
+                    lastName: "",
+                    bid: "",
+                    getBid: "",
+                },
+
+                // Car表格数据
+                tableData: [{
+                    autoID: "",
+                    location: "",
+                    year: "",
+                    type: "",
+                    mileage: "",
+                    vin: "",
+                }]
+            }
+        }
+    })
+
+</script>
+
+</body>
+</html>
